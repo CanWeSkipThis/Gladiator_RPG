@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Гладіаторський RPG-симулятор</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-shell">
+        <header class="top-bar">
+            <div class="brand" id="appTitle">Гладіаторський RPG-симулятор</div>
+            <div class="top-bar-actions">
+                <button id="btnSettingsTop" class="small-btn">⚙️</button>
+                <button id="btnMenuTop" class="small-btn">☰</button>
+            </div>
+        </header>
+
+        <section id="menuScreen" class="screen menu-screen">
+            <div class="menu-card">
+                <h1 id="menuHeading">Гладіаторський RPG-симулятор</h1>
+                <p id="menuSubtitle">Ти виходиш на арену, де честь, кров і золото вирішують долю гладіатора.</p>
+                <div id="menuButtons" class="menu-buttons"></div>
+            </div>
+        </section>
+
+        <section id="gameScreen" class="screen game-screen hidden">
+            <div class="game-layout">
+                <div class="game-main">
+                    <div class="hud">
+                        <div id="hudLeft" class="hud-block"></div>
+                        <div id="hudRight" class="hud-block"></div>
+                    </div>
+
+                    <div id="story" class="story-card"></div>
+                    <div id="secondaryInfo" class="secondary-info"></div>
+                    <div id="actions" class="actions"></div>
+                </div>
+
+                <aside id="journalPanel" class="journal-panel">
+                    <div class="journal-header">
+                        <div>
+                            <h2 id="journalTitle" class="journal-title">Журнал дій</h2>
+                            <div class="journal-subtitle">Останні 10 подій</div>
+                        </div>
+                        <span id="journalCount" class="tag">0</span>
+                    </div>
+                    <div id="actionLog" class="action-log"></div>
+                </aside>
+            </div>
+        </section>
+    </div>
+
+    <div id="modalOverlay" class="modal-overlay hidden">
+        <div id="modalBox" class="modal-box"></div>
+    </div>
+
+    <div id="toast" class="toast hidden"></div>
+    <div id="hotkeyOverlay" class="hotkey-overlay hidden"></div>
+
+    <script src="localization.js"></script>
+    <script src="items.js"></script>
+	<script src="shopSystem.js"></script>
+    <script src="enemies.js"></script>
+    <script src="bosses.js"></script>
+    <script src="quests.js"></script>
+	<script src="questDialogues.js"></script>
+    <script src="events.js"></script>
+    <script src="achievements.js"></script>
+    <script src="game.js"></script>
+    <script src="saveSystem.js"></script>
+    <script src="ui.js"></script>
+    <script src="hotkeys.js"></script>
+    <script src="questSystem.js"></script>
+    <script src="battleSystem.js"></script>
+	<script src="supabaseClient.js"></script>
+    <script src="auth.js"></script>
+    <script src="onlineSave.js"></script>
+</body>
+</html>
