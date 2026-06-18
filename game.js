@@ -97,8 +97,37 @@ window.T = window.T || ((key, vars = {}) => key);
 // App bootstrap
 // =====================================================
 
-function init() {
+async function init() {
+const offlineExists = hasSavedGame();
+const onlineExists = await hasOnlineSave();
+
+if (!state) {
+    state = createDefaultState();
+    window.gameSettings = state.settings;
+    window.gameState = state;
+}
+
+if (offlineExists && onlineExists) {
+    const choice = await chooseSaveSource();
+
+    if (choice === 'online') {
+        await loadStateOnline();
+        saveState();
+    } else {
+        loadState();
+        await saveStateOnline();
+    }
+} else if (offlineExists) {
     loadState();
+} else if (onlineExists) {
+    await loadStateOnline();
+    saveState();
+} else {
+    state = createDefaultState();
+    window.gameSettings = state.settings;
+    window.gameState = state;
+}
+
     applySettings();
     renderMenu();
     renderHUD();
@@ -110,7 +139,6 @@ function init() {
     DOM.btnSettingsTop.onclick = openSettings;
     DOM.btnMenuTop.onclick = goToMenu;
 
-    // === ДОДАЙТЕ ЦЕЙ БЛОК ДЛЯ ЗАКРИТТЯ ВІКНА ПО КЛІКУ НА ФОН ===
     if (DOM.modalOverlay) {
         DOM.modalOverlay.onclick = function (e) {
             if (e.target === DOM.modalOverlay) {
@@ -119,9 +147,16 @@ function init() {
             }
         };
     }
-    // =========================================================
 
-    showMenuScreen();
+    if (state.screen === 'game') {
+        DOM.menuScreen.classList.add('hidden');
+        DOM.gameScreen.classList.remove('hidden');
+    } else {
+           showMenuScreen();
+    }
+    await updateHeaderStatus();
 }
 
-window.addEventListener('DOMContentLoaded', init);
+window.addEventListener('DOMContentLoaded', async () => {
+    await init();
+});

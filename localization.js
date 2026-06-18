@@ -142,7 +142,8 @@ window.LOCALES = {
         eventGood: 'Добра подія',
         eventBad: 'Невдала подія',
         eventNeutral: 'Нейтральна подія',
-		refreshOpponent: 'Оновити суперника'
+		refreshOpponent: 'Оновити суперника',
+		account: 'Акаунт'
     },
     en: {
         appTitle: 'Gladiator RPG Simulator',
@@ -282,7 +283,8 @@ window.LOCALES = {
         eventGood: 'Good event',
         eventBad: 'Bad event',
         eventNeutral: 'Neutral event',
-		refreshOpponent: 'refreshOpponent'
+		refreshOpponent: 'refresh Opponent',
+		account: 'Account'
     }
 };
 

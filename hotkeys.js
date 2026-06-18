@@ -58,14 +58,15 @@ function getCurrentHotkeyEntries() {
         ];
     }
 
-    if (DOM.gameScreen.classList.contains('hidden')) {
+    if (getCurrentScreen() === 'menu') {
         const hasSave = hasSavedGame();
         return [
             { combo: 'N', label: T('newGame'), available: true },
             { combo: 'C', label: T('continueGame'), available: hasSave },
             { combo: 'A', label: T('achievements'), available: true },
             { combo: 'L', label: T('leaderboard'), available: true },
-            { combo: 'P', label: T('settings'), available: true }
+            { combo: 'P', label: T('settings'), available: true },
+			{ combo: 'U', label: T('account'), available: true }
         ].filter(item => item.available);
     }
 
@@ -134,10 +135,12 @@ function handleHotkeyAction(key) {
     const code = String(key || '');
     const resolve = (name) => (typeof window[name] === 'function' ? window[name] : null);
 	
-	if (
+    if (
         state.modalContext === 'shop' ||
         state.modalContext === 'equipmentShop' ||
-        state.modalContext === 'potionShop'
+        state.modalContext === 'potionShop' ||
+        state.modalContext === 'saveConflict' || 
+		state.modalContext === 'account'
     ) {
 		if (code === 'ArrowUp') {
             state.modalNavigation.selectedIndex--;
@@ -191,15 +194,16 @@ function handleHotkeyAction(key) {
     return previewActions[code] || null;
 }
 
-    if (DOM.gameScreen.classList.contains('hidden')) {
+    if (getCurrentScreen() === 'menu') {
         const hasSave = hasSavedGame();
         const menuActions = {
-			KeyN: resolve('startNewGame'),
-			KeyC: hasSave ? resolve('continueGame') : null,
-			KeyA: resolve('showAchievements'),
-			KeyL: resolve('showLeaderboard'),
-			KeyP: resolve('openSettings')
-			};
+            KeyN: resolve('startNewGame'),
+            KeyC: hasSave ? resolve('continueGame') : null,
+            KeyA: resolve('showAchievements'),
+            KeyL: resolve('showLeaderboard'),
+            KeyP: resolve('openSettings'),
+            KeyU: resolve('openAccountMenu')
+        };
         return menuActions[code] || null;
     }
 

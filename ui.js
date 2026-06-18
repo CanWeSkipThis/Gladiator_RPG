@@ -251,8 +251,10 @@ window.DEFAULT_SETTINGS = {
 };
 
 
-function renderMenu() {
+async function renderMenu() {
     const hasSave = hasSavedGame();
+	const user = await getCurrentUser();
+
     const buttons = [
         `${makeButtonWithHotkey({ id: 'menuStartBtn', cls: 'good', label: T('newGame'), hotkey: 'N' })}`,
         hasSave ? `${makeButtonWithHotkey({ id: 'menuContinueBtn', cls: 'secondary', label: T('continueGame'), hotkey: 'C' })}` : '',
@@ -274,7 +276,9 @@ function renderMenu() {
     bind('menuLeaderboardBtn', showLeaderboard);
     bind('menuSettingsBtn', openSettings);
     renderHotkeyOverlay();
+	updateAccountStatus();
 }
+
 function renderHUD() {
     const p = state.player;
     const hpPct = p.maxHp ? (p.hp / p.maxHp) * 100 : 0;
@@ -515,6 +519,7 @@ function startNewGame() {
     const fresh = createDefaultState();
     const keepSettings = clone(state.settings);
     state = fresh;
+	setScreen('game');
     state.settings = keepSettings;
     state.mode = 'campaign';
     state.battle = null;
@@ -549,11 +554,13 @@ function continueGame() {
     renderHUD();
     renderStory(getIntroText());
     renderSecondaryInfo('');
+    setScreen('game');
     renderMainActions();
     saveState();
 }
 
 function goToMenu() {
+	setScreen('menu');
     if (!DOM.gameScreen.classList.contains('hidden')) {
         saveState();
     }
@@ -1127,4 +1134,231 @@ function smoothScrollModalTo(targetY) {
     }
 
     requestAnimationFrame(animate);
+}
+
+async function updateAccountStatus() {
+    const node = document.getElementById('accountStatus');
+    if (!node) return;
+
+    const user = await getCurrentUser();
+
+    if (!user) {
+        node.textContent = '👤 Гість';
+        return;
+    }
+
+    node.textContent = `👤 ${user.email}`;
+}
+
+async function openAccountMenu() {
+    const user = await getCurrentUser();
+	const saveInfo = await getOnlineSaveInfo();
+
+    if (!user) {
+        showModal(`
+            <h2 class="modal-title">👤 Акаунт</h2>
+
+            <div class="modal-body">
+                <div class="modal-section">
+                    Ви граєте як гість.
+                </div>
+            </div>
+
+            <div class="modal-section list">
+                <button class="good" id="accountLoginBtn">
+                    Увійти
+                </button>
+
+                <button class="secondary" id="accountCloseBtn">
+                    Закрити
+                </button>
+            </div>
+        `);
+
+        document.getElementById('accountLoginBtn').onclick = openLoginModal;
+        document.getElementById('accountCloseBtn').onclick = closeModal;
+		
+		document.getElementById('accountSaveCloudBtn').onclick =
+            async () => {
+                await saveStateOnline();
+                showToast('Збережено у хмару');
+            };
+
+        document.getElementById('accountLoadCloudBtn').onclick =
+            async () => {
+            await loadStateOnline();
+            showToast('Завантажено з хмари');
+        };
+		
+		state.modalContext = 'account';
+
+        state.modalNavigation = {
+            context: 'account',
+            selectedIndex: 0,
+            items: [
+                document.getElementById('accountLoginBtn'),
+                document.getElementById('accountCloseBtn')
+            ]
+        };
+
+        updateModalSelection();
+
+        return;
+    }
+
+    showModal(`
+        <h2 class="modal-title">☁ Акаунт</h2>
+
+        <div class="modal-body">
+            <div class="modal-section">
+               ${user.email}
+            </div>
+
+           <div class="modal-section">
+                Рівень: ${saveInfo?.data?.player?.level ?? '-'}<br>
+                Золото: ${saveInfo?.data?.player?.gold ?? '-'}<br>
+                Перемог: ${saveInfo?.data?.player?.stats?.wins ?? '-'}
+            </div>
+        </div>
+
+        <div class="modal-section list">
+            <button class="danger" id="accountLogoutBtn">
+                Вийти
+            </button>
+
+            <button class="secondary" id="accountCloseBtn">
+                Закрити
+            </button>
+        </div>
+    `);
+
+    document.getElementById('accountLogoutBtn').onclick = async () => {
+        await signOut();
+        await updateHeaderStatus();
+        closeModal();
+    };
+
+    document.getElementById('accountCloseBtn').onclick = closeModal;
+	state.modalContext = 'account';
+
+    state.modalNavigation = {
+        context: 'account',
+        selectedIndex: 0,
+        items: [
+            document.getElementById('accountLogoutBtn'),
+            document.getElementById('accountCloseBtn')
+        ]
+    };
+
+    updateModalSelection();
+}
+async function openLoginModal() {
+    showModal(`
+        <h2 class="modal-title">👤 Акаунт</h2>
+
+
+        <div class="modal-body">
+
+            <div class="modal-section">
+                <label>Email</label>
+                <input
+                    type="email"
+                    id="loginEmail"
+                    placeholder="email@example.com">
+            </div>
+
+            <div class="modal-section">
+                <label>Пароль</label>
+                <input
+                    type="password"
+                    id="loginPassword"
+                    placeholder="********">
+            </div>
+
+        </div>
+
+        <div class="modal-footer">
+            <button class="good" id="loginBtn">
+                Увійти
+            </button>
+
+            <button class="secondary" id="registerBtn">
+                Реєстрація
+            </button>
+
+            <button class="secondary" id="loginCloseBtn">
+                Закрити
+            </button>
+        </div>
+    `);
+
+    document.getElementById('loginBtn').onclick = handleLogin;
+    document.getElementById('registerBtn').onclick = handleRegister;
+    document.getElementById('loginCloseBtn').onclick = closeModal;
+}
+
+async function handleRegister() {
+    const email =
+        document.getElementById('loginEmail').value.trim();
+
+    const password =
+        document.getElementById('loginPassword').value;
+
+    if (!email || !password) {
+        showToast('Заповніть email та пароль');
+        return;
+    }
+
+    const result =
+        await registerWithEmail(email, password);
+
+    if (!result) {
+        showToast('Помилка реєстрації');
+        return;
+    }
+
+    await updateHeaderStatus();
+
+    closeModal();
+
+    showToast('Акаунт створено');
+}
+
+async function handleLogin() {
+    const email =
+        document.getElementById('loginEmail').value.trim();
+
+    const password =
+        document.getElementById('loginPassword').value;
+
+    if (!email || !password) {
+        showToast('Заповніть email та пароль');
+        return;
+    }
+
+    const result =
+        await loginWithEmail(email, password);
+
+    if (!result) {
+        showToast('Помилка входу');
+        return;
+    }
+
+    await updateHeaderStatus();
+
+    closeModal();
+
+    showToast('Вхід виконано');
+}
+
+function setScreen(screen) {
+    state.screen = screen;
+
+    if (screen === 'game') {
+        showGameScreen();
+    } else {
+        showMenuScreen();
+    }
+
+    updateHeaderStatus();
 }

@@ -89,6 +89,7 @@ function createDefaultState() {
         settings: clone(DEFAULT_SETTINGS),
         progress: createDefaultProgress(),
         log: [],
+		screen: 'menu',
         leaderboard: [],
         battle: null,
         mode: 'campaign',
@@ -116,11 +117,18 @@ function saveState() {
         progress: state.progress,
         log: state.log,
         leaderboard: state.leaderboard,
-        mode: state.mode
+        mode: state.mode,
+        savedAt: Date.now()
     };
     localStorage.setItem(SAVE_KEY, JSON.stringify(payload));
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(state.settings));
     localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(state.leaderboard));
+	
+	if (window.getCurrentUser && window.saveStateOnline) {
+        saveStateOnline().catch(error => {
+            console.error('Online save failed:', error);
+        });
+    }
 }
 
 function saveSettings() {
@@ -326,3 +334,28 @@ function resetProgress() {
     showToast(T('progressReset'), 'warning');
 }
 
+function getLocalSaveInfo() {
+    const raw = localStorage.getItem(SAVE_KEY);
+
+    if (!raw) {
+        return null;
+    }
+
+    try {
+        const parsed = JSON.parse(raw);
+
+        return {
+            savedAt: parsed.savedAt || null
+        };
+    } catch {
+        return null;
+    }
+}
+
+window.getLocalSaveInfo = getLocalSaveInfo;
+
+function getCurrentScreen() {
+    return state?.screen || 'menu';
+}
+
+window.getCurrentScreen = getCurrentScreen;
