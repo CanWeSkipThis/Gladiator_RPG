@@ -289,16 +289,20 @@ async function submitScoreToLeaderboard() {
 }
 
 async function updateHeaderStatus() {
-    const accountStatus =
-        document.getElementById('accountStatus');
+    const appTitle = document.getElementById('appTitle');
+    const accountStatus = document.getElementById('accountStatus');
 
-    if (!accountStatus) return;
+    if (!appTitle || !accountStatus) return;
 
     if (state.screen === 'game') {
+        appTitle.classList.remove('hidden');
         accountStatus.classList.add('hidden');
+
+        appTitle.textContent = 'Гладіаторський RPG-симулятор v0.16.5';
         return;
     }
 
+    appTitle.classList.add('hidden');
     accountStatus.classList.remove('hidden');
 
     const user = await getCurrentUser();

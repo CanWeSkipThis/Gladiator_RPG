@@ -207,12 +207,14 @@ function showGameScreen() {
     DOM.menuScreen.classList.add('hidden');
     DOM.gameScreen.classList.remove('hidden');
     renderHotkeyOverlay();
+	updateHeaderStatus();
 }
 
 function showMenuScreen() {
     DOM.gameScreen.classList.add('hidden');
     DOM.menuScreen.classList.remove('hidden');
     renderHotkeyOverlay();
+	updateHeaderStatus();
 }
 
 function refreshAllUI({ persistGame = true } = {}) {
